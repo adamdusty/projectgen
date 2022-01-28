@@ -2,6 +2,8 @@ package template
 
 import "testing"
 
+// TODO: Test renderTemplate error paths
+
 func TestRenderStringRendersExpectedValues(t *testing.T) {
 	content := "{{ .proj_name }}"
 	vars := make(map[string]interface{})
