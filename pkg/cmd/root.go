@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 var rootCmd = &cobra.Command{
@@ -17,5 +19,18 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() error {
+	cmd, _, err := rootCmd.Find(os.Args[1:])
+	// default cmd if no cmd is given
+	if err == nil && cmd.Use == rootCmd.Use && cmd.Flags().Parse(os.Args[1:]) != pflag.ErrHelp {
+		args := append([]string{"generate"}, os.Args[1:]...)
+		rootCmd.SetArgs(args)
+	}
+
 	return rootCmd.Execute()
 }
+
+func init() {
+	cobra.OnInitialize(initConfig)
+}
+
+func initConfig() {}

@@ -1,18 +1,12 @@
 package generator
 
 import (
-	"errors"
-	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 
 	"github.com/adamdusty/projectgen/pkg/template"
 )
-
-func GenerateFile(file template.ProjectFile, stream io.Writer) error {
-	return errors.New("Unimpl")
-}
 
 func GenerateProject(root string, proj template.RenderedTemplate) error {
 	// Loop through and create directories
@@ -23,7 +17,6 @@ func GenerateProject(root string, proj template.RenderedTemplate) error {
 		if err != nil {
 			return err
 		}
-
 	}
 
 	// Loop through and create files

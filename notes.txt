@@ -1,0 +1,1 @@
+pgen . --template cpp-exe

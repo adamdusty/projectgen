@@ -65,13 +65,13 @@ func renderString(input string, vars map[string]interface{}) string {
 	return result.String()
 }
 
-func renderTemplate(input ProjectTemplate, userVars map[string]interface{}) (*RenderedTemplate, error) {
+func renderTemplate(input ProjectTemplate, userVars map[string]interface{}) (RenderedTemplate, error) {
 
 	for _, v := range input.TemplatedVariables {
 		if _, ok := userVars[v]; ok {
 			continue
 		} else {
-			return nil, errors.New("Missing variable definition")
+			return RenderedTemplate{}, errors.New("Missing variable definition")
 		}
 	}
 
@@ -86,9 +86,10 @@ func renderTemplate(input ProjectTemplate, userVars map[string]interface{}) (*Re
 		dirs = append(dirs, renderString(d, userVars))
 	}
 
-	tmpl := new(RenderedTemplate)
-	tmpl.Files = files
-	tmpl.Directories = dirs
+	tmpl := RenderedTemplate{
+		Files:       files,
+		Directories: dirs,
+	}
 
 	return tmpl, nil
 }
