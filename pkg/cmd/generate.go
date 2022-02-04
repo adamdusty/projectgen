@@ -24,13 +24,14 @@ func init() {
 	}
 
 	generateCmd.Flags().StringVarP(&outputDir, "output", "o", cwd, "Directory to generate project in. Defaults to current working directory.")
-	generateCmd.Flags().StringVar(&template, "template", "t", "Name/Alias of template to use.")
+	generateCmd.Flags().StringVar(&template, "template", "", "Name/Alias of template to use.")
 
 	rootCmd.AddCommand(generateCmd)
 }
 
 func generate(cmd *cobra.Command, args []string) {
 	fmt.Println("Hello from generate")
+
 	// find template based on template alias
 
 	// load template from file

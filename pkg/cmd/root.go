@@ -6,6 +6,12 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+)
+
+var (
+	cfgPath     string
+	templateDir string
 )
 
 var rootCmd = &cobra.Command{
@@ -31,6 +37,34 @@ func Execute() error {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+
+	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "", "config file (default: $HOME/.pgen)")
+	rootCmd.PersistentFlags().StringVar(&templateDir, "template-directory", "", "directory with template definitions (default: $HOME/.pgen/templates")
+
+	viper.BindPFlag("template-directory", rootCmd.PersistentFlags().Lookup("template-directory"))
 }
 
-func initConfig() {}
+func initConfig() {
+	// if cfgPath != "" {
+	// 	viper.SetConfigFile(cfgPath)
+	// } else {
+	// 	home, err := os.UserHomeDir()
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+
+	// 	if _, err := os.Stat(filepath.Join(home, ".pgen")); os.IsNotExist(err) {
+	// 		err := os.MkdirAll(filepath.Join(home, ".pgen"), 0755)
+	// 		if err != nil {
+	// 			panic(err)
+	// 		}
+	// 	}
+
+	// 	viper.AddConfigPath(home)
+	// 	viper.SetConfigType("yaml")
+	// 	viper.SetConfigName(".pgen")
+	// }
+	// if err := viper.ReadInConfig(); err == nil {
+	// 	fmt.Println("Using config file: ", viper.ConfigFileUsed())
+	// }
+}
