@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -19,18 +17,16 @@ var rootCmd = &cobra.Command{
 	Short:   "Project generator",
 	Long:    "Project generator for all kinds of projects and custom templates!",
 	Aliases: []string{"pgen"},
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Hello from pgen cmd")
-	},
+	Run:     func(cmd *cobra.Command, args []string) {},
 }
 
 func Execute() error {
-	cmd, _, err := rootCmd.Find(os.Args[1:])
-	// default cmd if no cmd is given
-	if err == nil && cmd.Use == rootCmd.Use && cmd.Flags().Parse(os.Args[1:]) != pflag.ErrHelp {
-		args := append([]string{"generate"}, os.Args[1:]...)
-		rootCmd.SetArgs(args)
-	}
+	// cmd, _, err := rootCmd.Find(os.Args[1:])
+	// // default cmd if no cmd is given
+	// if err == nil && cmd.Use == rootCmd.Use && cmd.Flags().Parse(os.Args[1:]) != pflag.ErrHelp {
+	// 	args := append([]string{"generate"}, os.Args[1:]...)
+	// 	rootCmd.SetArgs(args)
+	// }
 
 	return rootCmd.Execute()
 }
@@ -42,12 +38,20 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&templateDir, "template-directory", "", "directory with template definitions (default: $HOME/.pgen/templates")
 
 	viper.BindPFlag("template-directory", rootCmd.PersistentFlags().Lookup("template-directory"))
+
 }
 
 func initConfig() {
-	// if cfgPath != "" {
-	// 	viper.SetConfigFile(cfgPath)
-	// } else {
+	if cfgPath != "" {
+
+		viper.SetConfigFile(cfgPath)
+		viper.SetConfigType("yaml")
+		if err := viper.ReadInConfig(); err == nil {
+			fmt.Println("Using config file: ", viper.ConfigFileUsed())
+		}
+
+	}
+	// else {
 	// 	home, err := os.UserHomeDir()
 	// 	if err != nil {
 	// 		panic(err)
@@ -63,8 +67,5 @@ func initConfig() {
 	// 	viper.AddConfigPath(home)
 	// 	viper.SetConfigType("yaml")
 	// 	viper.SetConfigName(".pgen")
-	// }
-	// if err := viper.ReadInConfig(); err == nil {
-	// 	fmt.Println("Using config file: ", viper.ConfigFileUsed())
 	// }
 }

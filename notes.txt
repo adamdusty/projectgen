@@ -1,1 +1,21 @@
-pgen . --template cpp-exe
+todo:
+    - Decide on template serialization format (json/yaml)
+        - YAML
+            - Easy to make, easy read
+            - Needs third party lib
+        - JSON
+            - Easy to serialize/deserialize
+            - Std lib/no dependency
+            - Difficult to write for humans
+
+    generate cmd:
+        - [pgen . --template base/cpp-exe]
+            - Find specified template in template directory
+            - Search through template directory for file base/cpp-exe ($HOME/.pgen/templates/base/cpp-exe)
+            - Load template from serialization format
+            - Generate project at path given as first argument
+
+            - Not sure if there is a way to eliminate the required template flag. Possibly give a shorthand.
+        
+    - Read available templates in template directory if given.
+    - Give user optional set up on first time use.
