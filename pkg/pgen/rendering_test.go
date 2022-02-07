@@ -1,4 +1,4 @@
-package template
+package pgen
 
 import "testing"
 
@@ -31,12 +31,12 @@ func TestRenderTemplateHappyPath(t *testing.T) {
 	tv := make([]string, 1)
 	tv[0] = "proj_name"
 
-	tmpl := ProjectTemplate{Files: files, Directories: dirs, TemplatedVariables: tv}
+	tmpl := ProjectTemplate{Files: files, Directories: dirs, Variables: tv}
 
 	vars := make(map[string]interface{})
 	vars["proj_name"] = "TestProj"
 
-	actual, _ := renderTemplate(tmpl, vars)
+	actual, _ := RenderTemplate(tmpl, vars)
 	expected := RenderedTemplate{
 		Files: []ProjectFile{
 			{Path: "src/main.cpp", Content: "Hello TestProj!"},
@@ -52,5 +52,13 @@ func TestRenderTemplateHappyPath(t *testing.T) {
 
 	if !actual.Equals(&expected) {
 		t.Error("Render templates are not equivalent")
+	}
+}
+
+func TestRenderStringToUpperCorrectlyUppercases(t *testing.T) {
+	res := renderString(`{{ "hello" | ToUpper }}`, nil)
+
+	if res != "HELLO" {
+		t.Error("Template string uppercase failure")
 	}
 }

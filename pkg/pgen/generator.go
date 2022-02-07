@@ -1,14 +1,12 @@
-package generator
+package pgen
 
 import (
 	"io/fs"
 	"os"
 	"path/filepath"
-
-	"github.com/adamdusty/projectgen/pkg/template"
 )
 
-func GenerateProject(root string, proj template.RenderedTemplate) error {
+func GenerateProject(root string, proj RenderedTemplate) error {
 	// Loop through and create directories
 	for _, d := range proj.Directories {
 		dir := filepath.Join(root, d)

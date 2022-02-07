@@ -2,11 +2,14 @@ todo:
     - Decide on template serialization format (json/yaml)
         - YAML
             - Easy to make, easy read
-            - Needs third party lib
+            - Needs third party lib (already using for viper/cobra)
+            - Need to handle languages that use '#' for comments
+            - Multiline literal string blocks make for nicer manual template creation
         - JSON
             - Easy to serialize/deserialize
             - Std lib/no dependency
             - Difficult to write for humans
+            - Don't need special handling for language comments
 
     generate cmd:
         - [pgen . --template base/cpp-exe]
@@ -19,3 +22,4 @@ todo:
         
     - Read available templates in template directory if given.
     - Give user optional set up on first time use.
+    - Currently all errors are panic. Need to go back and implement appropriate error handling for each case.
