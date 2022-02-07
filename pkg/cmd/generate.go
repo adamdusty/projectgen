@@ -1,11 +1,12 @@
 package cmd
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/adamdusty/projectgen/pkg/pgen"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -33,18 +34,32 @@ func init() {
 }
 
 func generate(cmd *cobra.Command, args []string) {
-	fmt.Println("Hello from generate")
+	path := args[0]
 
 	// - Find specified template in template directory
 	// - Search through template directory for file base/cpp-exe ($HOME/.pgen/templates/base/cpp-exe)
-	// file, err := findTemplate(template)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	file, err := findTemplate(template)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
 
 	// - Load template from serialization format
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(file)
+	pgen.LoadFromYaml(buf.String())
+
+	// Get appropriate input from user for template
+	// Render template strings
 
 	// - Generate project at path given as first argument
+	if !filepath.IsAbs(path) {
+		cwd, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		path = filepath.Join(cwd, path)
+	}
 
 }
 
