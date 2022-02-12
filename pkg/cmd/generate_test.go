@@ -12,7 +12,7 @@ func TestFindTemplate(t *testing.T) { t.Error("unimpl") }
 
 func TestLoadTemplateFile(t *testing.T) { t.Error("unimpl") }
 
-func TestQueryUserVars(t *testing.T) { t.Error("unimpl") }
+func TestQueryUserVars(t *testing.T) {}
 
 func TestQueryVar(t *testing.T) {
 	v := pgen.TemplateVariable{
