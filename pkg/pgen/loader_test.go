@@ -30,7 +30,10 @@ var templateJson string = `
         }
     ],
     "variables": [
-		"project_name"
+		{
+            "identifier": "project_name",
+            "representation": "Project Name"
+        }
     ]
 }
 `
@@ -73,7 +76,8 @@ files:
 - path: README.md
   content: "# {{ project_name }}"
 variables:
-- project_name
+- identifier: project_name
+  representation: Project Name
 `
 
 var expectedTemplate ProjectTemplate = ProjectTemplate{
@@ -85,13 +89,13 @@ var expectedTemplate ProjectTemplate = ProjectTemplate{
 		{Path: "src/lib.cpp", Content: "#include \"lib.hpp\"\n\nnamespace {{ project_name | lower }} {\n\nauto greeting() -> char * {\n    return \"Hello from {{ project_name }}!\";\n}\n\n}"},
 		{Path: "README.md", Content: "# {{ project_name }}"},
 	},
-	Variables: []string{
-		"project_name",
+	Variables: []TemplateVariable{
+		{"project_name", "Project Name", "", "", ""},
 	},
 }
 
 func TestLoadFromJson(t *testing.T) {
-	actual, err := LoadFromJson(templateJson)
+	actual, err := LoadFromJson([]byte(templateJson))
 
 	if err != nil {
 		t.Error(err)
@@ -103,7 +107,7 @@ func TestLoadFromJson(t *testing.T) {
 }
 
 func TestLoadFromYaml(t *testing.T) {
-	actual, err := LoadFromYaml(templateYaml)
+	actual, err := LoadFromYaml([]byte(templateYaml))
 	if err != nil {
 		t.Error(err)
 	}

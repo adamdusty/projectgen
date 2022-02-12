@@ -6,15 +6,15 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func LoadFromJson(data string) (ProjectTemplate, error) {
+func LoadFromJson(data []byte) (*ProjectTemplate, error) {
 
-	tmpl := ProjectTemplate{}
-	err := json.Unmarshal([]byte(data), &tmpl)
+	tmpl := new(ProjectTemplate)
+	err := json.Unmarshal(data, &tmpl)
 	return tmpl, err
 }
 
-func LoadFromYaml(data string) (ProjectTemplate, error) {
-	tmpl := ProjectTemplate{}
-	err := yaml.Unmarshal([]byte(data), &tmpl)
+func LoadFromYaml(data []byte) (*ProjectTemplate, error) {
+	tmpl := new(ProjectTemplate)
+	err := yaml.Unmarshal(data, &tmpl)
 	return tmpl, err
 }

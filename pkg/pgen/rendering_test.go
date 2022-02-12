@@ -31,12 +31,12 @@ func TestRenderTemplateHappyPath(t *testing.T) {
 	tv := make([]string, 1)
 	tv[0] = "proj_name"
 
-	tmpl := ProjectTemplate{Files: files, Directories: dirs, Variables: tv}
+	tmpl := ProjectTemplate{Files: files, Directories: dirs, Variables: []TemplateVariable{{tv[0], "", "", "", ""}}}
 
 	vars := make(map[string]interface{})
 	vars["proj_name"] = "TestProj"
 
-	actual, _ := RenderTemplate(tmpl, vars)
+	actual, _ := RenderTemplate(&tmpl, vars)
 	expected := RenderedTemplate{
 		Files: []ProjectFile{
 			{Path: "src/main.cpp", Content: "Hello TestProj!"},

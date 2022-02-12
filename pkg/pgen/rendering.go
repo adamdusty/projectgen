@@ -2,6 +2,7 @@ package pgen
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"text/template"
 )
@@ -27,14 +28,24 @@ func renderString(input string, vars map[string]interface{}) string {
 	return result.String()
 }
 
-func RenderTemplate(input ProjectTemplate, userVars map[string]interface{}) (RenderedTemplate, error) {
+func RenderTemplate(input *ProjectTemplate, userVars map[string]interface{}) (*RenderedTemplate, error) {
 
-	for _, v := range input.Variables {
-		if _, ok := userVars[v]; ok {
-			continue
-		} else {
-			return RenderedTemplate{}, errors.New("missing variable definition")
+	if !validateUserDefinitions(input, userVars) {
+		keys := make([]string, 0, len(userVars))
+		for k := range userVars {
+			keys = append(keys, k)
 		}
+
+		for _, v := range input.Variables {
+			fmt.Printf("%s, ", v.Representation)
+		}
+		fmt.Println()
+
+		for _, key := range keys {
+			fmt.Printf("%s, ", key)
+		}
+
+		return nil, errors.New("User definitions do not match definitions expected by template")
 	}
 
 	var files []ProjectFile
@@ -48,10 +59,22 @@ func RenderTemplate(input ProjectTemplate, userVars map[string]interface{}) (Ren
 		dirs = append(dirs, renderString(d, userVars))
 	}
 
-	tmpl := RenderedTemplate{
-		Files:       files,
-		Directories: dirs,
-	}
+	tmpl := new(RenderedTemplate)
+	tmpl.Files = files
+	tmpl.Directories = dirs
 
 	return tmpl, nil
+}
+
+func validateUserDefinitions(tmpl *ProjectTemplate, vars map[string]interface{}) bool {
+
+	for _, v := range tmpl.Variables {
+		if _, ok := vars[v.Identifier]; ok {
+			continue
+		} else {
+			return false
+		}
+	}
+
+	return true
 }

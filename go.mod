@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -22,5 +23,4 @@ require (
 	golang.org/x/sys v0.0.0-20220204135822-1c1b9b1eba6a // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/ini.v1 v1.66.3 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

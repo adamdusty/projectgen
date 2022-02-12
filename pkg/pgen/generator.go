@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-func GenerateProject(root string, proj RenderedTemplate) error {
+func GenerateProject(root string, proj *RenderedTemplate) error {
 	// Loop through and create directories
 	for _, d := range proj.Directories {
 		dir := filepath.Join(root, d)

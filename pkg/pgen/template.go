@@ -2,6 +2,14 @@ package pgen
 
 // TODO: Test template equality functions
 
+type TemplateVariable struct {
+	Identifier       string
+	Representation   string
+	ShortDescription string
+	LongDescription  string
+	Default          string
+}
+
 type ProjectFile struct {
 	Path    string
 	Content string
@@ -10,12 +18,16 @@ type ProjectFile struct {
 type ProjectTemplate struct {
 	Files       []ProjectFile
 	Directories []string
-	Variables   []string
+	Variables   []TemplateVariable
 }
 
 type RenderedTemplate struct {
 	Files       []ProjectFile
 	Directories []string
+}
+
+func (tv *TemplateVariable) Equals(other *TemplateVariable) bool {
+	return tv.Identifier == other.Identifier && tv.Representation == other.Representation && tv.ShortDescription == other.ShortDescription && tv.LongDescription == other.LongDescription
 }
 
 func (r *RenderedTemplate) Equals(other *RenderedTemplate) bool {
@@ -68,7 +80,7 @@ func (t *ProjectTemplate) Equals(other *ProjectTemplate) bool {
 	}
 
 	for i := range t.Variables {
-		if t.Variables[i] != other.Variables[i] {
+		if !t.Variables[i].Equals(&other.Variables[i]) {
 			return false
 		}
 	}
