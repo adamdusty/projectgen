@@ -6,13 +6,42 @@ import (
 	"testing"
 
 	"github.com/adamdusty/projectgen/pkg/pgen"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFindTemplate(t *testing.T) { t.Error("unimpl") }
 
 func TestLoadTemplateFile(t *testing.T) { t.Error("unimpl") }
 
-func TestQueryUserVars(t *testing.T) {}
+func TestQueryUserVars(t *testing.T) {
+	vars := []pgen.TemplateVariable{
+		{
+			Default:          "noname",
+			Identifier:       "proj_name",
+			Representation:   "Project Name",
+			ShortDescription: "Name of project",
+			LongDescription:  "The name you wish your project to be generated with",
+		},
+		{
+			Default:          "me",
+			Identifier:       "author",
+			Representation:   "Author",
+			ShortDescription: "Author of project",
+			LongDescription:  "The person responsible for writing the project",
+		},
+	}
+
+	expected := map[string]interface{}{
+		"proj_name": "TestProjName",
+		"author":    "JohnDoe",
+	}
+
+	actual, err := queryUserVars(vars, strings.NewReader("TestProjName JohnDoe"), io.Discard)
+
+	assert.Nil(t, err, "unexpected err:", err)
+
+	assert.Equal(t, expected, actual, "actual user defs don't match expected")
+}
 
 func TestQueryVar(t *testing.T) {
 	v := pgen.TemplateVariable{
@@ -26,13 +55,8 @@ func TestQueryVar(t *testing.T) {
 	expected := "unit_test_proj_name"
 	actual, err := queryVar(&v, strings.NewReader("unit_test_proj_name"), io.Discard)
 
-	if actual != expected {
-		t.Errorf("Query return did not match expected: %s != %s", actual, expected)
-	}
-
-	if err != nil {
-		t.Errorf("Produced unexpected error: %s", err)
-	}
+	assert.Nil(t, err, "unexpected err:", err)
+	assert.Equal(t, expected, actual, "actual response doesn't match expected")
 }
 
 func TestProcessInput(t *testing.T) {
@@ -47,13 +71,8 @@ func TestProcessInput(t *testing.T) {
 	expected := "unit_test_proj_name"
 	actual, err := processInput(&v, "unit_test_proj_name")
 
-	if actual != expected {
-		t.Errorf("Processed input did not match expected: %s != %s", actual, expected)
-	}
-
-	if err != nil {
-		t.Errorf("Produced unexpected error: %s", err)
-	}
+	assert.Nil(t, err, "unexpected err:", err)
+	assert.Equalf(t, expected, actual, "Processed input did not match expected: %s != %s", actual, expected)
 }
 
 func TestBuildQueryPromptAllFieldsPresent(t *testing.T) {
@@ -68,9 +87,7 @@ func TestBuildQueryPromptAllFieldsPresent(t *testing.T) {
 	expected := "Identifier (Test identifier) [test]: "
 	actual := buildQueryPrompt(&data)
 
-	if actual != expected {
-		t.Errorf("Generated prompt not equal to expected: %s", actual)
-	}
+	assert.Equal(t, expected, actual, "actual prompt doesn't match expected", expected, actual)
 }
 
 func TestBuildQueryPromptNoDefault(t *testing.T) {
@@ -85,9 +102,7 @@ func TestBuildQueryPromptNoDefault(t *testing.T) {
 	expected := "Identifier (Test identifier): "
 	actual := buildQueryPrompt(&data)
 
-	if actual != expected {
-		t.Errorf("Generated prompt not equal to expected: %s", actual)
-	}
+	assert.Equal(t, expected, actual, "actual prompt doesn't match expected", expected, actual)
 }
 
 func TestBuildQueryPromptNoDefaultNoDescription(t *testing.T) {
@@ -102,9 +117,7 @@ func TestBuildQueryPromptNoDefaultNoDescription(t *testing.T) {
 	expected := "Identifier: "
 	actual := buildQueryPrompt(&data)
 
-	if actual != expected {
-		t.Errorf("Generated prompt not equal to expected: %s", actual)
-	}
+	assert.Equal(t, expected, actual, "actual prompt doesn't match expected", expected, actual)
 }
 
 func TestBuildQueryPromptNoDescription(t *testing.T) {
@@ -119,7 +132,5 @@ func TestBuildQueryPromptNoDescription(t *testing.T) {
 	expected := "Identifier [test]: "
 	actual := buildQueryPrompt(&data)
 
-	if actual != expected {
-		t.Errorf("Generated prompt not equal to expected: %s", actual)
-	}
+	assert.Equal(t, expected, actual, "actual prompt doesn't match expected", expected, actual)
 }

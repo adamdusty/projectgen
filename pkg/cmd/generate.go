@@ -52,7 +52,10 @@ func generate(cmd *cobra.Command, args []string) {
 	}
 
 	// Query user for variable defs
-	userDefs := queryUserVars(projectTemplate, os.Stdin, os.Stdout)
+	userDefs, err := queryUserVars(projectTemplate.Variables, os.Stdin, os.Stdout)
+	if err != nil {
+		panic(err)
+	}
 
 	// Render template strings
 	renderedTemplate, err := pgen.RenderTemplate(projectTemplate, userDefs)
@@ -124,28 +127,28 @@ func loadTemplateFile(path string) (*pgen.ProjectTemplate, error) {
 	return tmpl, nil
 }
 
-func queryUserVars(tmpl *pgen.ProjectTemplate, reader io.Reader, writer io.Writer) map[string]interface{} {
-	vars := make(map[string]interface{})
+func queryUserVars(vars []pgen.TemplateVariable, reader io.Reader, writer io.Writer) (map[string]interface{}, error) {
+	defs := make(map[string]interface{})
 
-	for _, v := range tmpl.Variables {
-		def, err := queryVar(&v, os.Stdin, os.Stdout)
+	for i := 0; i < len(vars); {
+		def, err := queryVar(&vars[i], os.Stdin, os.Stdout)
 
 		if err != nil {
 			switch e := err.(type) {
 			case *UserInputError:
-				output := fmt.Sprintf("%s is required.", v.Representation)
+				output := fmt.Sprintf("%s is required.", vars[i].Representation)
 				writer.Write([]byte(output))
-				def, err = queryVar(&v, reader, writer)
+				continue
 			default:
-				panic(e)
+				return nil, e
 			}
 		}
 
-		vars[v.Identifier] = def
-
+		defs[vars[i].Identifier] = def
+		i++
 	}
 
-	return vars
+	return defs, nil
 }
 
 func queryVar(v *pgen.TemplateVariable, reader io.Reader, writer io.Writer) (string, error) {
@@ -194,7 +197,7 @@ func buildQueryPrompt(v *pgen.TemplateVariable) string {
 
 func (e *UserInputError) Error() string {
 	if e.Input == "" {
-		return fmt.Sprintf("user input was empty")
+		return "user input was empty"
 	}
 
 	return fmt.Sprintf("user input error: %s", e.Input)
