@@ -129,9 +129,10 @@ func loadTemplateFile(path string) (*pgen.ProjectTemplate, error) {
 
 func queryUserVars(vars []pgen.TemplateVariable, reader io.Reader, writer io.Writer) (map[string]interface{}, error) {
 	defs := make(map[string]interface{})
+	scanner := bufio.NewScanner(reader)
 
 	for i := 0; i < len(vars); {
-		def, err := queryVar(&vars[i], os.Stdin, os.Stdout)
+		def, err := queryVar(&vars[i], scanner, writer)
 
 		if err != nil {
 			switch e := err.(type) {
@@ -151,15 +152,15 @@ func queryUserVars(vars []pgen.TemplateVariable, reader io.Reader, writer io.Wri
 	return defs, nil
 }
 
-func queryVar(v *pgen.TemplateVariable, reader io.Reader, writer io.Writer) (string, error) {
+func queryVar(v *pgen.TemplateVariable, scanner *bufio.Scanner, writer io.Writer) (string, error) {
 	writer.Write([]byte(buildQueryPrompt(v)))
-	scanner := bufio.NewScanner(reader)
 	scanner.Scan()
 	def, err := processInput(v, scanner.Text())
 	return def, err
 }
 
 func processInput(v *pgen.TemplateVariable, input string) (string, error) {
+
 	if v.Default != "" && input == "" {
 		return v.Default, nil
 	}

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"io"
 	"strings"
 	"testing"
@@ -36,10 +37,9 @@ func TestQueryUserVars(t *testing.T) {
 		"author":    "JohnDoe",
 	}
 
-	actual, err := queryUserVars(vars, strings.NewReader("TestProjName JohnDoe"), io.Discard)
+	actual, err := queryUserVars(vars, strings.NewReader("TestProjName\nJohnDoe"), io.Discard)
 
 	assert.Nil(t, err, "unexpected err:", err)
-
 	assert.Equal(t, expected, actual, "actual user defs don't match expected")
 }
 
@@ -52,8 +52,10 @@ func TestQueryVar(t *testing.T) {
 		LongDescription:  "This is a test variable and the long description is unused for now",
 	}
 
+	input := strings.NewReader("unit_test_proj_name")
+
 	expected := "unit_test_proj_name"
-	actual, err := queryVar(&v, strings.NewReader("unit_test_proj_name"), io.Discard)
+	actual, err := queryVar(&v, bufio.NewScanner(input), io.Discard)
 
 	assert.Nil(t, err, "unexpected err:", err)
 	assert.Equal(t, expected, actual, "actual response doesn't match expected")
