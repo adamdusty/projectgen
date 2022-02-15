@@ -15,28 +15,26 @@ import (
 	"github.com/spf13/viper"
 )
 
-var outputDir string
 var template string
+var templateDir string
 
 type UserInputError struct {
 	Input string
 }
 
 var generateCmd = &cobra.Command{
-	Use:   "generate ",
+	Use:   "generate [output dir]",
 	Short: "Generate project.",
 	Args:  cobra.MinimumNArgs(1),
-	Run:   generate,
+
+	Run: generate,
 }
 
 func init() {
-	cwd, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
+	generateCmd.Flags().StringVar(&template, "template", "", "Path to (or name/alias of) template to use.")
+	generateCmd.Flags().StringVar(&templateDir, "template-directory", defaultTemplateDirectory(), "directory with template definitions (default: $HOME/.pgen/templates")
 
-	generateCmd.Flags().StringVarP(&outputDir, "output", "o", cwd, "Directory to generate project in. Defaults to current working directory.")
-	generateCmd.Flags().StringVar(&template, "template", "", "Name/Alias of template to use.")
+	viper.BindPFlag("template-directory", generateCmd.Flags().Lookup("template-directory"))
 
 	rootCmd.AddCommand(generateCmd)
 }
@@ -202,4 +200,14 @@ func (e *UserInputError) Error() string {
 	}
 
 	return fmt.Sprintf("user input error: %s", e.Input)
+}
+
+func defaultTemplateDirectory() string {
+	cacheDir, err := os.UserCacheDir()
+	if err != nil {
+		panic(err)
+	}
+
+	dir := filepath.Join(cacheDir, ".pgen", "templates")
+	return dir
 }

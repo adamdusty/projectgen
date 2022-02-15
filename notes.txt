@@ -1,5 +1,8 @@
 todo:
-    - Decide on template serialization format (json/yaml)
+    - Set up generate as command if no other subcommand provided
+    - Build config if not provided or not found
+        - if config is not provided or found, prompt user to decide if they'd like to generate default configuration
+    - Decide on template serialization format (json/yaml) maybe both
         - YAML
             - Easy to make, easy read
             - Needs third party lib (already using for viper/cobra)
@@ -20,7 +23,9 @@ todo:
 
             - Not sure if there is a way to eliminate the required template flag. Possibly give a shorthand.
         
-    - Read available templates in template directory if given.
-    - Give user optional set up on first time use.
-    - Currently all errors are panic. Need to go back and implement appropriate error handling for each case.
-    - Figure out how to add validation to user provided definitions
+        - Read available templates in template directory if given.
+        - Give user optional set up on first time use.
+        - Currently all errors are panic. Need to go back and implement appropriate error handling for each case.
+        - Figure out how to add validation to user provided definitions
+
+    - Add the ability to use commands (ie: dotnet new console..., cargo init...)
