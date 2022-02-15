@@ -1,17 +1,11 @@
 package cmd
 
 import (
-	"bufio"
-	"io"
-	"os"
-	"path/filepath"
-	"strings"
-
+	"github.com/adamdusty/projectgen/pkg/pgen"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
-var cfgPath string
+var config pgen.Config
 
 var rootCmd = &cobra.Command{
 	Use:   "pgen",
@@ -33,69 +27,7 @@ func Execute() error {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(config.InitConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgPath, "config", "", "config file (default: ~/.config/.pgen/config.yaml or %APPDATA%/.pgen/config.yaml)")
-}
-
-func initConfig() {
-	if cfgPath != "" {
-		viper.SetConfigFile(cfgPath)
-	} else {
-		viper.SetConfigName("config")
-
-		searchPath, err := configSearchPath()
-		if err != nil {
-			panic(err)
-		}
-
-		viper.AddConfigPath(searchPath)
-	}
-
-	viper.SetConfigType("yaml")
-	if err := viper.ReadInConfig(); err != nil {
-		switch e := err.(type) {
-		case viper.ConfigFileNotFoundError:
-			promptForConfigCreation(os.Stdin, os.Stdout)
-		default:
-			panic(e)
-		}
-	}
-}
-
-func configSearchPath() (string, error) {
-	path, err := os.UserConfigDir()
-	if err == nil {
-		path = filepath.Join(path, ".pgen")
-	}
-
-	return path, err
-}
-
-func promptForConfigCreation(reader io.Reader, writer io.Writer) {
-	in := bufio.NewScanner(reader)
-
-	writer.Write([]byte("Config not found, would you like to generate one? [Y/n]: "))
-	in.Scan()
-	response := strings.ToLower(in.Text())
-
-	for response != "y" && response != "n" && response != "" {
-		writer.Write([]byte("Invalid response. Would you like to generate a config? [Y/n]: "))
-		in.Scan()
-		response = strings.ToLower(in.Text())
-	}
-
-	if response == "y" || response == "" {
-		err := createConfigFile()
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		return
-	}
-}
-
-func createConfigFile() error {
-	viper.WriteConfig()
-	return nil
+	rootCmd.PersistentFlags().StringVar(&config.Path, "config", "", "config file (default: ~/.config/.pgen/config.yaml or %APPDATA%/.pgen/config.yaml)")
 }

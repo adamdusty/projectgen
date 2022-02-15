@@ -45,7 +45,7 @@ func RenderTemplate(input *ProjectTemplate, userVars map[string]interface{}) (*R
 			fmt.Printf("%s, ", key)
 		}
 
-		return nil, errors.New("User definitions do not match definitions expected by template")
+		return nil, errors.New("user definitions do not match definitions expected by template")
 	}
 
 	var files []ProjectFile
