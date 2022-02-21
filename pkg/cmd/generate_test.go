@@ -20,6 +20,8 @@ func TestLoadTemplateFile(t *testing.T) {
 	// May need refactor
 }
 
+// Issue with this test
+// queryVar function creates new scanner every time a definition is requested,
 func TestQueryUserVars(t *testing.T) {
 	vars := []pgen.TemplateVariable{
 		{
@@ -43,9 +45,9 @@ func TestQueryUserVars(t *testing.T) {
 		"author":    "JohnDoe",
 	}
 
-	actual, err := queryUserVars(vars, strings.NewReader("TestProjName\nJohnDoe"), io.Discard)
+	input := strings.NewReader("TestProjName\nJohnDoe\n")
+	actual := queryUserVars(vars, input, io.Discard)
 
-	assert.Nil(t, err, "unexpected err:", err)
 	assert.Equal(t, expected, actual, "actual user defs don't match expected")
 }
 
@@ -59,28 +61,12 @@ func TestQueryVar(t *testing.T) {
 	}
 
 	input := strings.NewReader("unit_test_proj_name")
+	scanner := bufio.NewScanner(input)
 
 	expected := "unit_test_proj_name"
-	actual, err := queryVar(&v, bufio.NewScanner(input), io.Discard)
+	actual := queryVar(buildQueryPrompt(&v), scanner, io.Discard)
 
-	assert.Nil(t, err, "unexpected err:", err)
 	assert.Equal(t, expected, actual, "actual response doesn't match expected")
-}
-
-func TestProcessInput(t *testing.T) {
-	v := pgen.TemplateVariable{
-		Default:          "test",
-		Identifier:       "identifier",
-		Representation:   "Identifier",
-		ShortDescription: "Test identifier",
-		LongDescription:  "This is a test variable and the long description is unused for now",
-	}
-
-	expected := "unit_test_proj_name"
-	actual, err := processInput(&v, "unit_test_proj_name")
-
-	assert.Nil(t, err, "unexpected err:", err)
-	assert.Equalf(t, expected, actual, "Processed input did not match expected: %s != %s", actual, expected)
 }
 
 func TestBuildQueryPromptAllFieldsPresent(t *testing.T) {

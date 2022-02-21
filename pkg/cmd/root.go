@@ -1,11 +1,8 @@
 package cmd
 
 import (
-	"github.com/adamdusty/projectgen/pkg/pgen"
 	"github.com/spf13/cobra"
 )
-
-var config pgen.Config
 
 var rootCmd = &cobra.Command{
 	Use:   "pgen",
@@ -27,7 +24,5 @@ func Execute() error {
 }
 
 func init() {
-	cobra.OnInitialize(config.InitConfig)
 
-	rootCmd.PersistentFlags().StringVar(&config.Path, "config", "", "config file (default: ~/.config/.pgen/config.yaml or %APPDATA%/.pgen/config.yaml)")
 }

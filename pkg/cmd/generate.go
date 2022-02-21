@@ -3,7 +3,6 @@ package cmd
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -18,10 +17,6 @@ import (
 var template string
 var templateDir string
 
-type UserInputError struct {
-	Input string
-}
-
 var generateCmd = &cobra.Command{
 	Use:   "generate [output dir]",
 	Short: "Generate project.",
@@ -31,9 +26,12 @@ var generateCmd = &cobra.Command{
 }
 
 func init() {
-	generateCmd.Flags().StringVar(&template, "template", "", "Path to (or name/alias of) template to use.")
-	generateCmd.Flags().StringVar(&templateDir, "template-directory", defaultTemplateDirectory(), "directory with template definitions (default: $HOME/.pgen/templates")
+	generateCmd.Flags().StringVar(&template, "template", "", "path or name of template")
+	generateCmd.Flags().StringVar(&templateDir, "template-directory", "", "directory with templates")
 
+	generateCmd.MarkFlagRequired("template")
+
+	// viper.BindPFlag("template", generateCmd.Flags().Lookup("template"))
 	viper.BindPFlag("template-directory", generateCmd.Flags().Lookup("template-directory"))
 
 	rootCmd.AddCommand(generateCmd)
@@ -42,70 +40,36 @@ func init() {
 func generate(cmd *cobra.Command, args []string) {
 	path := args[0]
 
-	// - Find specified template in template directory
-	// - Search through template directory for file (base/cpp-exe = $HOME/.pgen/templates/base/cpp-exe)
-	projectTemplate, err := loadTemplateFile(path)
+	projectTemplate, err := loadTemplateFile(template)
 	if err != nil {
 		panic(err)
 	}
 
 	// Query user for variable defs
-	userDefs, err := queryUserVars(projectTemplate.Variables, os.Stdin, os.Stdout)
+	userDefs := queryUserVars(projectTemplate.Variables, os.Stdin, os.Stdout)
 	if err != nil {
 		panic(err)
-	}
-
-	// Render template strings
-	renderedTemplate, err := pgen.RenderTemplate(projectTemplate, userDefs)
-	if err != nil {
-		panic(err)
-	}
-
-	// - Generate project at path given as first argument
-	if !filepath.IsAbs(path) {
-		cwd, err := os.Getwd()
-		if err != nil {
-			panic(err)
-		}
-		path = filepath.Join(cwd, path)
 	}
 
 	// Generate project
-	err = pgen.GenerateProject(path, renderedTemplate)
+	err = pgen.GenerateProject(path, projectTemplate, userDefs)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func findTemplate(alias string) (*os.File, error) {
-	// If path is absolute, try to use file at absolute path
-	file, err := os.Open(alias)
-	if err == nil {
+	// If template directory is set, check directory for alias
+	if viper.IsSet("template-directory") {
+		dir := viper.GetString("template-directory")
+		path := filepath.Join(dir, alias)
+
+		file, err := os.Open(path)
+		return file, err
+	} else {
+		file, err := os.Open(alias)
 		return file, err
 	}
-
-	// If path is relative, search for file at CWD + alias
-	cwd, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-	path := filepath.Join(cwd, alias)
-
-	file, err = os.Open(path)
-	if err == nil {
-		return file, err
-	}
-
-	// If not found, try to read template directory from config, and attempt to resolve from there
-	dir := viper.GetString("template-directory")
-	path = filepath.Join(dir, alias)
-
-	file, err = os.Open(path)
-	if err == nil {
-		return file, err
-	}
-
-	return nil, errors.New("Unable to find template: " + alias)
 }
 
 func loadTemplateFile(path string) (*pgen.ProjectTemplate, error) {
@@ -125,49 +89,35 @@ func loadTemplateFile(path string) (*pgen.ProjectTemplate, error) {
 	return tmpl, nil
 }
 
-func queryUserVars(vars []pgen.TemplateVariable, reader io.Reader, writer io.Writer) (map[string]interface{}, error) {
+func queryVar(prompt string, scanner *bufio.Scanner, writer io.Writer) string {
+	writer.Write([]byte(prompt))
+	scanner.Scan()
+	return scanner.Text()
+}
+
+func queryUserVars(vars []pgen.TemplateVariable, reader io.Reader, writer io.Writer) map[string]interface{} {
+
 	defs := make(map[string]interface{})
 	scanner := bufio.NewScanner(reader)
 
 	for i := 0; i < len(vars); {
-		def, err := queryVar(&vars[i], scanner, writer)
+		v := &vars[i]
+		def := queryVar(buildQueryPrompt(v), scanner, writer)
 
-		if err != nil {
-			switch e := err.(type) {
-			case *UserInputError:
-				output := fmt.Sprintf("%s is required.", vars[i].Representation)
-				writer.Write([]byte(output))
-				continue
-			default:
-				return nil, e
-			}
+		if def == "" && v.Default == "" {
+			fmt.Fprintf(writer, "[ERROR] %s is required.\n", v.Representation)
+			continue
 		}
 
-		defs[vars[i].Identifier] = def
+		if def == "" {
+			def = v.Default
+		}
+
+		defs[v.Identifier] = def
 		i++
 	}
 
-	return defs, nil
-}
-
-func queryVar(v *pgen.TemplateVariable, scanner *bufio.Scanner, writer io.Writer) (string, error) {
-	writer.Write([]byte(buildQueryPrompt(v)))
-	scanner.Scan()
-	def, err := processInput(v, scanner.Text())
-	return def, err
-}
-
-func processInput(v *pgen.TemplateVariable, input string) (string, error) {
-
-	if v.Default != "" && input == "" {
-		return v.Default, nil
-	}
-
-	if v.Default == "" && input == "" {
-		return "", &UserInputError{input}
-	}
-
-	return input, nil
+	return defs
 }
 
 func buildQueryPrompt(v *pgen.TemplateVariable) string {
@@ -192,22 +142,4 @@ func buildQueryPrompt(v *pgen.TemplateVariable) string {
 	prompt.WriteString(": ")
 
 	return prompt.String()
-}
-
-func (e *UserInputError) Error() string {
-	if e.Input == "" {
-		return "user input was empty"
-	}
-
-	return fmt.Sprintf("user input error: %s", e.Input)
-}
-
-func defaultTemplateDirectory() string {
-	cacheDir, err := os.UserCacheDir()
-	if err != nil {
-		panic(err)
-	}
-
-	dir := filepath.Join(cacheDir, ".pgen", "templates")
-	return dir
 }
